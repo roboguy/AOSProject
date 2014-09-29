@@ -33,7 +33,7 @@ public class Process1Server extends Thread {
 	}
 
 	public static void main(String[] args) {
-		int port = Integer.parseInt(args[0]);
+		int port = 5001;//Integer.parseInt(args[0]);
 		try {
 			Thread t = new Process1Server(port);
 			t.start();
