@@ -10,15 +10,19 @@ public class Process1Client {
 	
 	public static void main(String[] args) {
 		
-		Process1Client process1 = new Process1Client();				
-		double time = process1.generateRandomTime();
-		
-		double value = process1.generateRandomValue();
-		if(value >= 0 && value < 0.1) {
-			//Put the process on idle state
-		} else {
-			process1.sendComputationMessage(time);
-		}
+		int ackCount = 0;
+		Process1Client process1 = new Process1Client();
+		for(int i = 1; i < 26; i++) {
+			double time = process1.generateRandomTime();
+			
+			double value = process1.generateRandomValue();
+			if(value >= 0 && value < 0.1) {
+				//Put the process on idle state
+			} else {
+				ackCount = ackCount + 1;
+				process1.sendComputationMessage(time, ackCount);
+			}
+		}				
 	}
 	
 	private void SetUpNetworking(int randomNum) {
@@ -35,20 +39,20 @@ public class Process1Client {
 			System.out.println("Connecting to " + serverName + " on port "+ port);
 			Socket client = new Socket(serverName, port);
 			System.out.println("Just connected to "	+ client.getRemoteSocketAddress());
-			OutputStream outToServer = client.getOutputStream();
-			DataOutputStream out = new DataOutputStream(outToServer);
+			PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+			BufferedReader in =new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-			out.writeUTF("Hello from " + client.getLocalSocketAddress());
-			InputStream inFromServer = client.getInputStream();
-			DataInputStream in = new DataInputStream(inFromServer);
-			System.out.println("Server says " + in.readUTF());
+			out.println("ProcessName: "+ serverName);
+			out.println("ProcessPort: "+ port);
+			
+			System.out.println("Server says " + in.readLine());
 			client.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void sendComputationMessage(double time) {
+	private void sendComputationMessage(double time, int ackCount) {
 		
 		Random r = new Random();
 		int Low = 1;
@@ -69,10 +73,11 @@ public class Process1Client {
 			
         	writer.println("Sending time is : "+ sdf.format(cal.getTime()) );
         	writer.println("The process to which the message is sent is : process" +randomNum);
+        	writer.println("No of Acknowlegement yet to be received are: " +ackCount); // This is not exactly the count
         	SetUpNetworking(randomNum);
 			
 		} else {
-			sendComputationMessage(time);
+			sendComputationMessage(time, ackCount);
 		}
 		writer.close();
 	}
