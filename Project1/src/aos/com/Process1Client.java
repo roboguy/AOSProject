@@ -27,25 +27,35 @@ public class Process1Client {
 		/*String serverName = ServerPort.getProperty("process"+randomNum);//args[0];
 		String portString = ServerPort.getProperty("process"+randomNum+"Port");//Integer.parseInt(args[1]);
 		int port = Integer.parseInt(portString);*/
-		String serverName = "127.0.0.1";
-		int port = 5001;
+		String serverName = "localhost";
+		int port = 6000;
+		Socket client = null;
+		PrintWriter out = null;
+		BufferedReader in = null;
 		
 		try {
 			
 			System.out.println("Connecting to " + serverName + " on port "+ port);
-			Socket client = new Socket(serverName, port);
+			client = new Socket(serverName, port);
 			System.out.println("Just connected to "	+ client.getRemoteSocketAddress());
-			PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-			BufferedReader in =new BufferedReader(new InputStreamReader(client.getInputStream()));
+			out = new PrintWriter(client.getOutputStream(), true);
+			in =new BufferedReader(new InputStreamReader(client.getInputStream()));
 
 			out.println("ProcessName: "+ serverName);
 			out.println("ProcessPort: "+ port);
 			
 			System.out.println("Server says " + in.readLine());
-			client.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		try {
+			out.close();
+	        in.close();
+	        client.close();
+	    } 
+	    catch (IOException e) {
+	       System.out.println(e);
+	    }
 	}
 
 	private void sendComputationMessage(double time) {

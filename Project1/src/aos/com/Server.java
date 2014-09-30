@@ -1,33 +1,36 @@
 package aos.com;
 
+import java.io.IOException;
 import java.net.*;
-import java.util.*;
 
 public class Server {
-	ArrayList listOfProcess;
-	int port = 5000;
+	int port = 6000;
 	
 	public static void main(String[] args) {
 		new Server().go();
 	}
 	
-	private void go() {
-		listOfProcess = new ArrayList();
+	public void go() {
+		ServerSocket sock = null;
 		try{
-			ServerSocket sock = new ServerSocket(port);
+			sock = new ServerSocket(port);
 			
 			while(true) {
 				Socket processSock = sock.accept();
-				listOfProcess.add(processSock);
 				
 				Thread t = new Thread(new ProcessHandler(processSock));
 				t.start();
 				System.out.println("got connection");
-				sock.close();
 			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		try {
+	       sock.close();
+	    } 
+	    catch (IOException e) {
+	       System.out.println(e);
+	    }
 	}
 }
