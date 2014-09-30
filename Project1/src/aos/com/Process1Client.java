@@ -35,13 +35,13 @@ public class Process1Client {
 			System.out.println("Connecting to " + serverName + " on port "+ port);
 			Socket client = new Socket(serverName, port);
 			System.out.println("Just connected to "	+ client.getRemoteSocketAddress());
-			OutputStream outToServer = client.getOutputStream();
-			DataOutputStream out = new DataOutputStream(outToServer);
+			PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+			BufferedReader in =new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-			out.writeUTF("Hello from " + client.getLocalSocketAddress());
-			InputStream inFromServer = client.getInputStream();
-			DataInputStream in = new DataInputStream(inFromServer);
-			System.out.println("Server says " + in.readUTF());
+			out.println("ProcessName: "+ serverName);
+			out.println("ProcessPort: "+ port);
+			
+			System.out.println("Server says " + in.readLine());
 			client.close();
 		} catch (IOException e) {
 			e.printStackTrace();
