@@ -3,55 +3,32 @@ package aos.com;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Iterator;
 
-public class ProcessHandler implements Runnable {
-	Socket processSocket;
+public class ProcessHandler implements Runnable{
+
 	BufferedReader reader;
-	ArrayList listOfProcess = new ArrayList();
+	Socket sock;
 	
-	public ProcessHandler(Socket processSock) {
-		processSocket = processSock;
+	public ProcessHandler(Socket client) {
+		sock = client;
 		try {
-			PrintWriter writer = new PrintWriter(processSocket.getOutputStream());
-			listOfProcess.add(writer);
-			
-			InputStreamReader ipReader = new InputStreamReader(processSock.getInputStream());
-			reader = new BufferedReader(ipReader);
+			InputStreamReader isReader = new InputStreamReader(sock.getInputStream());
+			reader = new BufferedReader(isReader);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 
 	public void run() {
-		String message;
+		String msg;
 		try {
-			while((message = reader.readLine()) != null) {
-				System.out.println("Server : " + message);
+			while((msg = reader.readLine()) != null) {
+				System.out.println("Server : "+ msg);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		acknowledgement();
-	}
-
-	public void acknowledgement() {
-		SetUpNetworking();
-		//Acknowledgement code goes here 
-		Iterator it = listOfProcess.iterator();
-		while(it.hasNext()) {
-			PrintWriter wrt = (PrintWriter) it.next();
-			wrt.println("This is from server to client"); // Acknowledgment message
-			wrt.flush();
-		}
-	}
-
-	public void SetUpNetworking() {
-		//Set up network for each individual process
 	}
 
 }

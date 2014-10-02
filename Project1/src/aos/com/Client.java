@@ -5,31 +5,39 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.io.*;
 
-public class Process1Client {
+import aos.com.trial.FlagObject;
+
+public class Client {
 	PrintWriter writer = getWriter("process1.txt");
+	Socket client = null;
+	static FlagObject fo = new FlagObject();
+	String thisProcess = "process1";
 	
 	public static void main(String[] args) {
 		
-		Process1Client process1 = new Process1Client();				
-		double time = process1.generateRandomTime();
+		Client process1 = new Client();
 		
-		double value = process1.generateRandomValue();
-		if(value >= 0 && value < 0.1) {
-			//Put the process on idle state
-		} else {
-			process1.sendComputationMessage(time);
+		for(int i=0; i< 26; i++) {
+			double time = process1.generateRandomTime();
+			
+			double value = process1.generateRandomValue();
+			if(value >= 0 && value < 0.1) {
+				//Put the process on idle state
+				fo.setIdeal(true);
+			} else {
+				process1.sendComputationMessage(time);
+			}
 		}
 	}
 	
 	private void SetUpNetworking(int randomNum) {
-		Properties ServerPort = getServerAndPort();
 		
-		/*String serverName = ServerPort.getProperty("process"+randomNum);//args[0];
+		Properties ServerPort = getPropertiesFile("serverport.properties");
+		
+		String serverName = ServerPort.getProperty("process"+randomNum);
 		String portString = ServerPort.getProperty("process"+randomNum+"Port");//Integer.parseInt(args[1]);
-		int port = Integer.parseInt(portString);*/
-		String serverName = "localhost";
-		int port = 6000;
-		Socket client = null;
+		int port = Integer.parseInt(portString);
+		
 		PrintWriter out = null;
 		BufferedReader in = null;
 		
@@ -44,39 +52,59 @@ public class Process1Client {
 			out.println("ProcessName: "+ serverName);
 			out.println("ProcessPort: "+ port);
 			
-			System.out.println("Server says " + in.readLine());
+			readResponse();
+			closeEverything(out, in);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void closeEverything(PrintWriter out, BufferedReader in) {
 		try {
 			out.close();
-	        in.close();
-	        client.close();
-	    } 
-	    catch (IOException e) {
-	       System.out.println(e);
-	    }
+			in.close();
+			client.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void readResponse() throws IOException {
+		String userInput;
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(
+				client.getInputStream()));
+
+		System.out.println("Response from server:");
+		while ((userInput = stdIn.readLine()) != null) {
+			System.out.println(userInput);
+		}
 	}
 
 	private void sendComputationMessage(double time) {
 		
 		Random r = new Random();
 		int Low = 1;
-		int High = 15;
+		int High = 5;
 		final int randomNum = Low + r.nextInt(Low + High);
 		System.out.println("Random process number : "+randomNum);
+		
+		if(findInTree(randomNum)) {
+			return;
+		}
+		
 		final Calendar cal = Calendar.getInstance();
     	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 		
 		// Filter out the own process
 		if(randomNum != 1) {
-			System.out.println("time interval is : "+ (long) time);
 			try {
 				Thread.sleep((long) (time*1000));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			
+			checkAndSetRoot(thisProcess);
         	writer.println("Sending time is : "+ sdf.format(cal.getTime()) );
         	writer.println("The process to which the message is sent is : process" +randomNum);
         	SetUpNetworking(randomNum);
@@ -85,6 +113,27 @@ public class Process1Client {
 			sendComputationMessage(time);
 		}
 		writer.close();
+	}
+
+	private void checkAndSetRoot(String thisProcess2) {
+		if(!fo.isROOT()){
+			fo.setROOT(true);
+			fo.setRootProcess(thisProcess2);
+		} else {
+			//do nothing
+		}
+	}
+
+	private boolean findInTree(int processNumber) {
+		
+		Properties prop = getPropertiesFile("intree.properties");
+		String inTree = prop.getProperty("process"+processNumber+"");
+		if(inTree.equals("false")) {
+			prop.setProperty("process"+processNumber+"", "true");
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	private double generateRandomValue() {
@@ -113,11 +162,11 @@ public class Process1Client {
 		return writer;
 	}
 	
-	private Properties getServerAndPort() {
+	private Properties getPropertiesFile(String filename) {
 		Properties prop = new Properties();
 		InputStream input = null;
 		try {
-			input = new FileInputStream("resource/serverport.properties");
+			input = new FileInputStream("resource/"+filename+"");
 			prop.load(input);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

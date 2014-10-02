@@ -1,36 +1,42 @@
 package aos.com;
 
-import java.io.IOException;
-import java.net.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
 
+/**
+* A simple socket server
+* @author faheem
+*
+*/
 public class Server {
-	int port = 6000;
-	
-	public static void main(String[] args) {
-		new Server().go();
-	}
+	ArrayList listOfProcess;
+	ServerSocket serverSock;
 	
 	public void go() {
-		ServerSocket sock = null;
 		try{
-			sock = new ServerSocket(port);
-			
+			serverSock = new ServerSocket(5000);
 			while(true) {
-				Socket processSock = sock.accept();
+				Socket client = serverSock.accept();
 				
-				Thread t = new Thread(new ProcessHandler(processSock));
+				Thread t = new Thread(new ProcessHandler(client));
+				Thread th = new Thread(new AckHandler(client));
 				t.start();
-				System.out.println("got connection");
+				th.start();
+				
 			}
-			
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
-		try {
-	       sock.close();
-	    } 
-	    catch (IOException e) {
-	       System.out.println(e);
-	    }
 	}
+
+	/**
+    * Creates a SocketServer object and starts the server.
+    *
+    * @param args
+    */
+    public static void main(String[] args) {
+    	Server ss = new Server();
+    	ss.go();
+    }
 }
