@@ -1,10 +1,11 @@
 package aos.com;
 
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
@@ -38,15 +39,20 @@ public class Usefulmethods {
 		return randomNum;
 	}
 	
-	public PrintWriter getWriter(String textfile) {
-		PrintWriter writer = null;
+	public BufferedWriter getWriter(String textfile) {
+		FileWriter fileWriter = null;
+		BufferedWriter bufferedWriter = null;
 		try {
-			writer = new PrintWriter(textfile, "UTF-8");
+			//writer = new PrintWriter(textfile, "UTF-8");
+			fileWriter = new FileWriter(textfile, true);
+			bufferedWriter = new BufferedWriter(fileWriter);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return writer;
+		return bufferedWriter;
 	}
 }

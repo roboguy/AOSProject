@@ -1,6 +1,7 @@
 package aos.com;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -8,7 +9,7 @@ import java.net.Socket;
 import java.util.Properties;
 
 public class TerminateWithRoot implements Runnable {
-	PrintWriter writer = new Client().writer;
+	BufferedWriter writer = new Usefulmethods().getWriter("process1.txt");
 	String rootProcess;
 	int rootProcessNumber;
 		

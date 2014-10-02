@@ -1,15 +1,15 @@
 package aos.com;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 public class ProcessHandler implements Runnable{
-	PrintWriter writer = new Client().writer;
+	BufferedWriter writer = new Usefulmethods().getWriter("process1.txt");
 	BufferedReader reader;
 	Socket sock;
 	
@@ -34,32 +34,36 @@ public class ProcessHandler implements Runnable{
 				
 				if(parts[0].contains("ComputationMessage")) {
 					
-			    	writer.println("Computation Message received at time : "+ sdf.format(cal.getTime()) );
-			    	writer.println("Sender of the computation message is : "+ parts[1] );
-			    	
+			    	writer.write("Computation Message received at time : "+ sdf.format(cal.getTime()) +"\n");
+			    	writer.write("Sender of the computation message is : "+ parts[1] +"\n");
+			    	writer.flush();
 					if(Message.getNoOfAckMsg() == 0) {
 						Message.setNoOfAckMsg(1);
 						Message.setParent(parts[1]);
-						writer.println("This Comptation Message is the first one" );
+						writer.write("This Comptation Message is the first one" +"\n");
+						writer.flush();
 					} else {
-						writer.println("Sending an Acknowledgement Since already in tree" );
+						writer.write("Sending an Acknowledgement Since already in tree" +"\n");
 						Thread th = new Thread(new AckHandler(parts[1]));
 						th.start();
+						writer.flush();
 					}
 				} else if(parts[0].contains("Acknowledgement")) {
 					
-					writer.println("Acknowledgement Message received at time : "+ sdf.format(cal.getTime()) );
-			    	writer.println("Sender of the Acknowledgement message is : "+ parts[1] );
+					writer.write("Acknowledgement Message received at time : "+ sdf.format(cal.getTime()) +"\n");
+			    	writer.write("Sender of the Acknowledgement message is : "+ parts[1] +"\n");
 					
 					int ackCount = Message.getNoOfAckMsg();
 					if(ackCount != 0) {
 						ackCount = ackCount - 1;
 						Message.setNoOfAckMsg(ackCount);
-						writer.println("Number of ACK message yet to be received: "+ ackCount );
+						writer.write("Number of ACK message yet to be received: "+ ackCount +"\n");
+						writer.flush();
 						if(ackCount == 1) {
 							if(Message.isIdeal()) {
-								writer.println("Detaching child node from Parent : "+ sdf.format(cal.getTime()) );
-								writer.println("Sending ACK to parent and detaching from tree");
+								writer.write("Detaching child node from Parent : "+ sdf.format(cal.getTime()) +"\n");
+								writer.write("Sending ACK to parent and detaching from tree"+"\n");
+								writer.flush();
 								sendAckToParent();
 							} else {
 								//Not sure of this
@@ -69,16 +73,18 @@ public class ProcessHandler implements Runnable{
 					} else {
 						//this is a root process
 						if(Message.isIdeal()) {
-							writer.println("TERMINATE : "+ sdf.format(cal.getTime()) );
+							writer.write("TERMINATE : "+ sdf.format(cal.getTime()) +"\n");
 							TerminateWithRoot twr = new TerminateWithRoot(parts[1]);
 							twr.go();
+							writer.flush();
 						} else {
 							// Not sure of this
 							break;
 						}
 					}
 				} else if(parts[0].contains("TerminateMessage")) {
-					writer.println("computation terminated : "+ sdf.format(cal.getTime()) );
+					writer.write("computation terminated : "+ sdf.format(cal.getTime())+"\n" );
+					writer.flush();
 					// terminate the process still to be done
 				}
 			}

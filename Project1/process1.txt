@@ -1,0 +1,3 @@
+Sending time is : 11:15:05
+The process to which the message is sent is : process2
+Number of process for which ACK's are yet to received1

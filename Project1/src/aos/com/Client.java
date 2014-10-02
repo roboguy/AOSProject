@@ -6,9 +6,9 @@ import java.util.*;
 import java.io.*;
 
 public class Client {
-	PrintWriter writer = new Usefulmethods().getWriter("process1.txt");
+	BufferedWriter writer = new Usefulmethods().getWriter("process1.txt");
 	Socket client = null;
-	int thisProcessNumber = 1;
+	int thisProcessNumber = 3;
 	
 	public static void main(String[] args) {
 		
@@ -45,8 +45,13 @@ public class Client {
 	public void handleIdealState() {
 		final Calendar cal = Calendar.getInstance();
     	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-    	writer.println("Sending time is : "+ sdf.format(cal.getTime()) );
-    	writer.println("From Active to Idle");
+    	try {
+			writer.write("Sending time is : "+ sdf.format(cal.getTime()) +"\n");
+	    	writer.write("From Active to Idle"+"\n");
+	    	writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     	
 		Message.setIdeal(true);
 	}
@@ -58,7 +63,8 @@ public class Client {
 		
 		String serverName = ServerPort.getProperty("process"+randomNum);
 		String portString = ServerPort.getProperty("process"+randomNum+"Port");//Integer.parseInt(args[1]);
-		int port = Integer.parseInt(portString);
+		int port = Integer.parseInt(portString.trim());
+		System.out.println("port is : "+ port);
 		
 		PrintWriter out = null;
 		BufferedReader in = null;
@@ -86,7 +92,7 @@ public class Client {
 		Random r = new Random();
 		int Low = 1;
 		int High = 3; // This should be 15
-		final int randomNum = Low + r.nextInt(Low + High);
+		final int randomNum = r.nextInt((High - Low)) + Low;
 		System.out.println("Random process number : "+randomNum);
 		
 		final Calendar cal = Calendar.getInstance();
@@ -100,15 +106,19 @@ public class Client {
 				e.printStackTrace();
 			}
 			
-        	writer.println("Sending time is : "+ sdf.format(cal.getTime()) );
-        	writer.println("The process to which the message is sent is : process" +randomNum);
-        	writer.println("Number of process for which ACK's are yet to received" +Message.getNoOfAckMsg());
+        	try {
+        		writer.write("Sending time is : "+ sdf.format(cal.getTime()) +"\n");
+            	writer.write("The process to which the message is sent is : process" +randomNum+"\n");
+				writer.write("Number of process for which ACK's are yet to received" +Message.getNoOfAckMsg()+"\n");
+				writer.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
         	SetUpNetworking(randomNum);
 			
 		} else {
 			sendComputationMessage(time);
 		}
-		writer.close();
 	}
 	
 	private void closeEverything(PrintWriter out, BufferedReader in) {
@@ -116,6 +126,7 @@ public class Client {
 			out.close();
 			in.close();
 			client.close();
+			//writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
