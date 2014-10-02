@@ -5,34 +5,56 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.io.*;
 
-import aos.com.trial.FlagObject;
-
 public class Client {
-	PrintWriter writer = getWriter("process1.txt");
+	PrintWriter writer = new Usefulmethods().getWriter("process1.txt");
 	Socket client = null;
-	static FlagObject fo = new FlagObject();
-	String thisProcess = "process1";
+	int thisProcessNumber = 1;
 	
 	public static void main(String[] args) {
 		
 		Client process1 = new Client();
 		
-		for(int i=0; i< 26; i++) {
-			double time = process1.generateRandomTime();
+		//Should be set to 26
+		for(int i=0; i< 10; i++) {
+			double time = new Usefulmethods().generateRandomTime();
 			
-			double value = process1.generateRandomValue();
+			double value = new Usefulmethods().generateRandomValue();
 			if(value >= 0 && value < 0.1) {
 				//Put the process on idle state
-				fo.setIdeal(true);
+				process1.handleIdealState();
+				break;
 			} else {
+				// For computation message count
+				int compMsg = Message.getNoOfComputationMsg();
+				compMsg = compMsg + 1;
+				Message.setNoOfComputationMsg(compMsg);
+				System.out.println("Computation message # : "+compMsg);
+				
+				// For acknowledge message count
+				int ackCount = Message.getNoOfAckMsg();
+				ackCount = ackCount + 1;
+				Message.setNoOfAckMsg(ackCount);
+				System.out.println("acknowledgement message # : "+ackCount);
+				
 				process1.sendComputationMessage(time);
 			}
 		}
+		Message.setIdeal(true);
 	}
 	
+	public void handleIdealState() {
+		final Calendar cal = Calendar.getInstance();
+    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+    	writer.println("Sending time is : "+ sdf.format(cal.getTime()) );
+    	writer.println("From Active to Idle");
+    	
+		Message.setIdeal(true);
+	}
+
 	private void SetUpNetworking(int randomNum) {
 		
-		Properties ServerPort = getPropertiesFile("serverport.properties");
+		//randomNum = 1;
+		Properties ServerPort = new Usefulmethods().getPropertiesFile("serverport.properties");
 		
 		String serverName = ServerPort.getProperty("process"+randomNum);
 		String portString = ServerPort.getProperty("process"+randomNum+"Port");//Integer.parseInt(args[1]);
@@ -49,15 +71,44 @@ public class Client {
 			out = new PrintWriter(client.getOutputStream(), true);
 			in =new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-			out.println("ProcessName: "+ serverName);
-			out.println("ProcessPort: "+ port);
+			out.println("ComputationMessage:"+ "process"+thisProcessNumber);
 			
-			readResponse();
+			//readResponse();
 			closeEverything(out, in);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void sendComputationMessage(double time) {
+		
+		Random r = new Random();
+		int Low = 1;
+		int High = 3; // This should be 15
+		final int randomNum = Low + r.nextInt(Low + High);
+		System.out.println("Random process number : "+randomNum);
+		
+		final Calendar cal = Calendar.getInstance();
+    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		
+		// Filter out the own process
+		if(randomNum != thisProcessNumber) {
+			try {
+				Thread.sleep((long) (time*1000));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+        	writer.println("Sending time is : "+ sdf.format(cal.getTime()) );
+        	writer.println("The process to which the message is sent is : process" +randomNum);
+        	writer.println("Number of process for which ACK's are yet to received" +Message.getNoOfAckMsg());
+        	SetUpNetworking(randomNum);
+			
+		} else {
+			sendComputationMessage(time);
+		}
+		writer.close();
 	}
 	
 	private void closeEverything(PrintWriter out, BufferedReader in) {
@@ -79,100 +130,5 @@ public class Client {
 		while ((userInput = stdIn.readLine()) != null) {
 			System.out.println(userInput);
 		}
-	}
-
-	private void sendComputationMessage(double time) {
-		
-		Random r = new Random();
-		int Low = 1;
-		int High = 5;
-		final int randomNum = Low + r.nextInt(Low + High);
-		System.out.println("Random process number : "+randomNum);
-		
-		if(findInTree(randomNum)) {
-			return;
-		}
-		
-		final Calendar cal = Calendar.getInstance();
-    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-		
-		// Filter out the own process
-		if(randomNum != 1) {
-			try {
-				Thread.sleep((long) (time*1000));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			
-			checkAndSetRoot(thisProcess);
-        	writer.println("Sending time is : "+ sdf.format(cal.getTime()) );
-        	writer.println("The process to which the message is sent is : process" +randomNum);
-        	SetUpNetworking(randomNum);
-			
-		} else {
-			sendComputationMessage(time);
-		}
-		writer.close();
-	}
-
-	private void checkAndSetRoot(String thisProcess2) {
-		if(!fo.isROOT()){
-			fo.setROOT(true);
-			fo.setRootProcess(thisProcess2);
-		} else {
-			//do nothing
-		}
-	}
-
-	private boolean findInTree(int processNumber) {
-		
-		Properties prop = getPropertiesFile("intree.properties");
-		String inTree = prop.getProperty("process"+processNumber+"");
-		if(inTree.equals("false")) {
-			prop.setProperty("process"+processNumber+"", "true");
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	private double generateRandomValue() {
-		double Low = 0;
-		double High = 1;
-		double randomNum = Low + (Math.random()* High);
-		return randomNum;
-	}
-
-	private double generateRandomTime() {
-		double Low = 0.25;
-		double High = 1;
-		double randomNum = Low + (Math.random()* High);
-		return randomNum;
-	}
-	
-	private PrintWriter getWriter(String textfile) {
-		PrintWriter writer = null;
-		try {
-			writer = new PrintWriter(textfile, "UTF-8");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return writer;
-	}
-	
-	private Properties getPropertiesFile(String filename) {
-		Properties prop = new Properties();
-		InputStream input = null;
-		try {
-			input = new FileInputStream("resource/"+filename+"");
-			prop.load(input);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return prop;
 	}
 }

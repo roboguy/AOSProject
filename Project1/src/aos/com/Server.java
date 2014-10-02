@@ -3,38 +3,31 @@ package aos.com;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Properties;
 
-/**
-* A simple socket server
-* @author faheem
-*
-*/
 public class Server {
 	ArrayList listOfProcess;
 	ServerSocket serverSock;
 	
 	public void go() {
+		int processNumber = new Client().thisProcessNumber;
+		Properties ServerPort = new Usefulmethods().getPropertiesFile("serverport.properties");
+		String portString = ServerPort.getProperty("process"+processNumber+"Port");//Integer.parseInt(args[1]);
+		int port = Integer.parseInt(portString);
+		
 		try{
-			serverSock = new ServerSocket(5000);
+			serverSock = new ServerSocket(port);
 			while(true) {
 				Socket client = serverSock.accept();
 				
 				Thread t = new Thread(new ProcessHandler(client));
-				Thread th = new Thread(new AckHandler(client));
-				t.start();
-				th.start();
-				
+				t.start();				
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
-
-	/**
-    * Creates a SocketServer object and starts the server.
-    *
-    * @param args
-    */
+	
     public static void main(String[] args) {
     	Server ss = new Server();
     	ss.go();

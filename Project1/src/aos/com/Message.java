@@ -2,10 +2,18 @@ package aos.com;
 
 public class Message {
 	public static boolean inTree;
+	public static boolean isIdeal;
 	public static String parent;
 	public static int NoOfComputationMsg;
 	public static int NoOfAckMsg;
 	
+	
+	public static boolean isIdeal() {
+		return isIdeal;
+	}
+	public static void setIdeal(boolean isIdeal) {
+		Message.isIdeal = isIdeal;
+	}
 	public static boolean isInTree() {
 		return inTree;
 	}
