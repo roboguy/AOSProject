@@ -10,12 +10,12 @@ public class Client {
 	Socket client = null;
 	int thisProcessNumber = 3;
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		Client process1 = new Client();
 		
 		//Should be set to 26
-		for(int i=0; i< 10; i++) {
+		for(int i=0; i< 6; i++) {
 			double time = new Usefulmethods().generateRandomTime();
 			
 			double value = new Usefulmethods().generateRandomValue();
@@ -25,29 +25,47 @@ public class Client {
 				break;
 			} else {
 				// For computation message count
-				int compMsg = Message.getNoOfComputationMsg();
+				int compMsg = Message.getNoOfAckToBeReceived();
 				compMsg = compMsg + 1;
-				Message.setNoOfComputationMsg(compMsg);
+				Message.setNoOfAckToBeReceived(compMsg);
 				System.out.println("Computation message # : "+compMsg);
-				
-				// For acknowledge message count
-				int ackCount = Message.getNoOfAckMsg();
-				ackCount = ackCount + 1;
-				Message.setNoOfAckMsg(ackCount);
-				System.out.println("acknowledgement message # : "+ackCount);
 				
 				process1.sendComputationMessage(time);
 			}
 		}
+		System.out.println("outside for loop in main");
 		Message.setIdeal(true);
+		if(Message.isIdeal() && (Message.root).equals("process"+process1.thisProcessNumber)) {
+			// This is the root process
+			if((Message.getNoOfAckToBeReceived() == 0)) {
+				System.out.println("inside the root process");
+
+				final Calendar cal = Calendar.getInstance();
+		    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+				
+				(process1.writer).write("TERMINATE : "+ sdf.format(cal.getTime()) +"\n");
+				TerminateWithRoot twr = new TerminateWithRoot("process"+process1.thisProcessNumber);
+				twr.go();
+				(process1.writer).flush();
+			}
+		} 
+		else if(Message.isIdeal() && (Message.getNoOfAckToBeSent() == 1)) {
+			System.out.println("detaching child from parent");
+			final Calendar cal = Calendar.getInstance();
+	    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+			
+	    	(process1.writer).write("Detaching child node from Parent : "+ sdf.format(cal.getTime()) +"\n");
+			(process1.writer).write("Sending ACK to parent and detaching from tree"+"\n");
+			(process1.writer).flush();
+			new Usefulmethods().sendAckToParent();
+		}
 	}
 	
 	public void handleIdealState() {
 		final Calendar cal = Calendar.getInstance();
-    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
     	try {
-			writer.write("Sending time is : "+ sdf.format(cal.getTime()) +"\n");
-	    	writer.write("From Active to Idle"+"\n");
+	    	writer.write("From Active to Idle"+ sdf.format(cal.getTime()) +"\n");
 	    	writer.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -89,36 +107,30 @@ public class Client {
 
 	private void sendComputationMessage(double time) {
 		
-		Random r = new Random();
-		int Low = 1;
-		int High = 3; // This should be 15
-		final int randomNum = r.nextInt((High - Low)) + Low;
-		System.out.println("Random process number : "+randomNum);
+		int randomNum = new Usefulmethods().getRandomProcessNumber(thisProcessNumber);
+		String randomprocess = "process"+randomNum;
+		if(randomprocess.equals(Message.root)) {
+			return;
+		}
 		
 		final Calendar cal = Calendar.getInstance();
-    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 		
-		// Filter out the own process
-		if(randomNum != thisProcessNumber) {
-			try {
-				Thread.sleep((long) (time*1000));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			
-        	try {
-        		writer.write("Sending time is : "+ sdf.format(cal.getTime()) +"\n");
-            	writer.write("The process to which the message is sent is : process" +randomNum+"\n");
-				writer.write("Number of process for which ACK's are yet to received" +Message.getNoOfAckMsg()+"\n");
-				writer.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-        	SetUpNetworking(randomNum);
-			
-		} else {
-			sendComputationMessage(time);
+    	try {
+			Thread.sleep((long) (time*1000));
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+		
+    	try {
+    		writer.write("Sending Computation Message at time : "+ sdf.format(cal.getTime()) +"\n");
+        	writer.write("The process to which the message is sent is : process" +randomNum+"\n");
+			writer.write("Number of process for which ACK's are yet to received" +Message.getNoOfAckToBeReceived()+"\n");
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	SetUpNetworking(randomNum);	
 	}
 	
 	private void closeEverything(PrintWriter out, BufferedReader in) {

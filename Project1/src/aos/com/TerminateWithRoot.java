@@ -34,7 +34,7 @@ public class TerminateWithRoot implements Runnable {
 			rootProcessNumber = Integer.parseInt(root);
 		}
 		
-		for(int i=1 ; i < 16; i++) {
+		for(int i=1 ; i < 4; i++) {
 			if(i == rootProcessNumber) {
 				// do nothing
 			} else {

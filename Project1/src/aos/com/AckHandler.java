@@ -34,7 +34,7 @@ public class AckHandler implements Runnable{
 		
 		try {
 			
-			System.out.println("Connecting to " + serverName + " on port "+ port);
+			System.out.println("Connecting for sending acknowledgement " + serverName + " on port "+ port);
 			ackAclient = new Socket(serverName, port);
 			System.out.println("Just connected to "	+ ackAclient.getRemoteSocketAddress());
 			out = new PrintWriter(ackAclient.getOutputStream(), true);

@@ -1,12 +1,19 @@
 package aos.com;
 
 public class Message {
+	public static String root = "process1";
 	public static boolean inTree;
-	public static boolean isIdeal;
-	public static String parent;
-	public static int NoOfComputationMsg;
-	public static int NoOfAckMsg;
+	public static boolean isIdeal = false;
+	public static String parent = null;
+	public static int NoOfAckToBeReceived = 0;
+	public static int NoOfAckToBeSent = 0;
 	
+	public String getRoot() {
+		return root;
+	}
+	public void setRoot(String root) {
+		Message.root = root;
+	}
 	
 	public static boolean isIdeal() {
 		return isIdeal;
@@ -26,17 +33,17 @@ public class Message {
 	public static void setParent(String parent) {
 		Message.parent = parent;
 	}
-	public static int getNoOfComputationMsg() {
-		return NoOfComputationMsg;
+	public static int getNoOfAckToBeReceived() {
+		return NoOfAckToBeReceived;
 	}
-	public static void setNoOfComputationMsg(int noOfComputationMsg) {
-		NoOfComputationMsg = noOfComputationMsg;
+	public static void setNoOfAckToBeReceived(int noOfComputationMsg) {
+		NoOfAckToBeReceived = noOfComputationMsg;
 	}
-	public static int getNoOfAckMsg() {
-		return NoOfAckMsg;
+	public static int getNoOfAckToBeSent() {
+		return NoOfAckToBeSent;
 	}
-	public static void setNoOfAckMsg(int noOfAckMsg) {
-		NoOfAckMsg = noOfAckMsg;
+	public static void setNoOfAckToBeSent(int noOfAckMsg) {
+		NoOfAckToBeSent = noOfAckMsg;
 	}
 	
 	

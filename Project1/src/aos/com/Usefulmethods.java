@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
+import java.util.Random;
 
 public class Usefulmethods {
 	
@@ -54,5 +55,26 @@ public class Usefulmethods {
 			e.printStackTrace();
 		}
 		return bufferedWriter;
+	}
+	
+	public int getRandomProcessNumber (int thisProcessNumber) {
+		Random r = new Random();
+		int Low = 1;
+		int High = 3; // This should be 15
+		int randomNum = r.nextInt((High - Low) + 1) + Low;
+		if(randomNum == thisProcessNumber) {
+			randomNum = r.nextInt(((High+1) - randomNum) + 1) + Low;
+		}
+		System.out.println("Random process number : "+randomNum);
+		return randomNum;
+	}
+
+	public void sendAckToParent() {
+		String parent = Message.getParent();
+		Message.setNoOfAckToBeSent(0);
+		Message.setParent(null);
+		Message.setIdeal(true);
+		Thread th = new Thread(new AckHandler(parent));
+		th.start();
 	}
 }

@@ -30,15 +30,15 @@ public class ProcessHandler implements Runnable{
 				System.out.println("Server : "+ msg);
 				String[] parts = msg.split(":");
 				final Calendar cal = Calendar.getInstance();
-		    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		    	final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 				
 				if(parts[0].contains("ComputationMessage")) {
 					
 			    	writer.write("Computation Message received at time : "+ sdf.format(cal.getTime()) +"\n");
 			    	writer.write("Sender of the computation message is : "+ parts[1] +"\n");
 			    	writer.flush();
-					if(Message.getNoOfAckMsg() == 0) {
-						Message.setNoOfAckMsg(1);
+					if(Message.getNoOfAckToBeSent() == 0) {
+						Message.setNoOfAckToBeSent(Message.getNoOfAckToBeSent() + 1);
 						Message.setParent(parts[1]);
 						writer.write("This Comptation Message is the first one" +"\n");
 						writer.flush();
@@ -53,10 +53,10 @@ public class ProcessHandler implements Runnable{
 					writer.write("Acknowledgement Message received at time : "+ sdf.format(cal.getTime()) +"\n");
 			    	writer.write("Sender of the Acknowledgement message is : "+ parts[1] +"\n");
 					
-					int ackCount = Message.getNoOfAckMsg();
+					int ackCount = Message.getNoOfAckToBeReceived();
 					if(ackCount != 0) {
 						ackCount = ackCount - 1;
-						Message.setNoOfAckMsg(ackCount);
+						Message.setNoOfAckToBeReceived(ackCount);
 						writer.write("Number of ACK message yet to be received: "+ ackCount +"\n");
 						writer.flush();
 						if(ackCount == 1) {
@@ -64,7 +64,7 @@ public class ProcessHandler implements Runnable{
 								writer.write("Detaching child node from Parent : "+ sdf.format(cal.getTime()) +"\n");
 								writer.write("Sending ACK to parent and detaching from tree"+"\n");
 								writer.flush();
-								sendAckToParent();
+								new Usefulmethods().sendAckToParent();
 							} else {
 								//Not sure of this
 								break; 
@@ -91,15 +91,6 @@ public class ProcessHandler implements Runnable{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private void sendAckToParent() {
-		String parent = Message.getParent();
-		Message.setNoOfAckMsg(0);
-		Message.setParent(null);
-		Message.setIdeal(true);
-		Thread th = new Thread(new AckHandler(parent));
-		th.start();
 	}
 
 }
