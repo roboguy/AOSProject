@@ -9,12 +9,16 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 public class ProcessHandler implements Runnable{
-	BufferedWriter writer = new Usefulmethods().getWriter("process1.txt");
+	Usefulmethods usefulMethods = Usefulmethods.getUsefulmethodsInstance();
+	BufferedWriter writer;
 	BufferedReader reader;
 	Socket sock;
+	Message message;
 	
-	public ProcessHandler(Socket client) {
+	public ProcessHandler(Socket client, Message msg) {
 		sock = client;
+		message = msg;
+		writer = usefulMethods.getWriter("process"+Message.processNumber+".txt");
 		try {
 			InputStreamReader isReader = new InputStreamReader(sock.getInputStream());
 			reader = new BufferedReader(isReader);
@@ -34,15 +38,17 @@ public class ProcessHandler implements Runnable{
 				
 				if(parts[0].contains("ComputationMessage")) {
 					
-			    	writer.write("Computation Message received at time : "+ sdf.format(cal.getTime()) +"\n");
-			    	writer.write("Sender of the computation message is : "+ parts[1] +"\n");
 			    	writer.flush();
-					if(Message.getNoOfAckToBeSent() == 0) {
-						Message.setNoOfAckToBeSent(Message.getNoOfAckToBeSent() + 1);
-						Message.setParent(parts[1]);
+					if(message.getNoOfAckToBeSent() == 0) {
+						message.setNoOfAckToBeSent(message.getNoOfAckToBeSent() + 1);
+						writer.write("Computation Message received at time : "+ sdf.format(cal.getTime()) + " Sender : " + parts[1] +
+				    			" Count of Ack to send Back : "+  message.getNoOfAckToBeSent() +"\n");
+						message.setParent(parts[1]);
 						writer.write("This Comptation Message is the first one" +"\n");
 						writer.flush();
 					} else {
+						writer.write("Computation Message received at time : "+ sdf.format(cal.getTime()) + " Sender : " + parts[1] +
+				    			" Count of Ack to send Back : "+  message.getNoOfAckToBeSent() +"\n");
 						writer.write("Sending an Acknowledgement Since already in tree" +"\n");
 						Thread th = new Thread(new AckHandler(parts[1]));
 						th.start();
@@ -50,39 +56,23 @@ public class ProcessHandler implements Runnable{
 					}
 				} else if(parts[0].contains("Acknowledgement")) {
 					
-					writer.write("Acknowledgement Message received at time : "+ sdf.format(cal.getTime()) +"\n");
-			    	writer.write("Sender of the Acknowledgement message is : "+ parts[1] +"\n");
-					
-					int ackCount = Message.getNoOfAckToBeReceived();
-					if(ackCount != 0) {
+					int ackCount = message.getNoOfAckToBeReceived();
+					System.out.println("Server : Yes i am in Acknowledgement if block : " + ackCount);
+					if(ackCount > 1) {
 						ackCount = ackCount - 1;
-						Message.setNoOfAckToBeReceived(ackCount);
-						writer.write("Number of ACK message yet to be received: "+ ackCount +"\n");
+						message.setNoOfAckToBeReceived(ackCount);
+						writer.write("Acknowledgement Message received at time : "+ sdf.format(cal.getTime()) + " Sender : " + parts[1] +
+								" Count of Ack to be Received : "+ ackCount +"\n");
 						writer.flush();
-						if(ackCount == 1) {
-							if(Message.isIdeal()) {
-								writer.write("Detaching child node from Parent : "+ sdf.format(cal.getTime()) +"\n");
-								writer.write("Sending ACK to parent and detaching from tree"+"\n");
-								writer.flush();
-								new Usefulmethods().sendAckToParent();
-							} else {
-								//Not sure of this
-								break; 
-							}
-						}
-					} else {
-						//this is a root process
-						if(Message.isIdeal()) {
-							writer.write("TERMINATE : "+ sdf.format(cal.getTime()) +"\n");
-							TerminateWithRoot twr = new TerminateWithRoot(parts[1]);
-							twr.go();
-							writer.flush();
-						} else {
-							// Not sure of this
-							break;
-						}
+					} else if (ackCount == 1) {
+						ackCount = ackCount - 1;
+						message.setNoOfAckToBeReceived(ackCount);
+						writer.write("Acknowledgement Message received at time : "+ sdf.format(cal.getTime()) + " Sender : " + parts[1] +
+								" Count of Ack to be Received : "+ ackCount +"\n");
+						writer.flush();
 					}
 				} else if(parts[0].contains("TerminateMessage")) {
+					Message.setTerminate(true);
 					writer.write("computation terminated : "+ sdf.format(cal.getTime())+"\n" );
 					writer.flush();
 					// terminate the process still to be done
@@ -92,5 +82,4 @@ public class ProcessHandler implements Runnable{
 			e.printStackTrace();
 		}
 	}
-
 }

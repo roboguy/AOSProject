@@ -1,12 +1,29 @@
 package aos.com;
 
 public class Message {
-	public static String root = "process1";
-	public static boolean inTree;
-	public static boolean isIdeal = false;
-	public static String parent = null;
-	public static int NoOfAckToBeReceived = 0;
-	public static int NoOfAckToBeSent = 0;
+	private static String root = "process1";
+	public static int processNumber = 1;
+	private static boolean isIdeal = false;
+	private static String parent = null;
+	private static boolean terminate = false;
+	private volatile int NoOfAckToBeReceived = 0;
+	private volatile int NoOfAckToBeSent = 0;	
+	private static volatile Message instance = null;
+	
+	private Message() {
+		
+	}
+
+	public static Message getInstance() {
+		synchronized (Message.class) {
+			// Double check
+			if (instance == null) {
+				System.out.println("Message : I am being created");
+				instance = new Message();
+			}
+		}
+		return instance;
+	}
 	
 	public String getRoot() {
 		return root;
@@ -15,36 +32,36 @@ public class Message {
 		Message.root = root;
 	}
 	
-	public static boolean isIdeal() {
+	public boolean isIdeal() {
 		return isIdeal;
 	}
-	public static void setIdeal(boolean isIdeal) {
+	public void setIdeal(boolean isIdeal) {
 		Message.isIdeal = isIdeal;
 	}
-	public static boolean isInTree() {
-		return inTree;
-	}
-	public static void setInTree(boolean inTree) {
-		Message.inTree = inTree;
-	}
-	public static String getParent() {
+	public synchronized String getParent() {
 		return parent;
 	}
-	public static void setParent(String parent) {
+	public synchronized void setParent(String parent) {
 		Message.parent = parent;
 	}
-	public static int getNoOfAckToBeReceived() {
+	public synchronized int getNoOfAckToBeReceived() {
 		return NoOfAckToBeReceived;
 	}
-	public static void setNoOfAckToBeReceived(int noOfComputationMsg) {
+	public synchronized void setNoOfAckToBeReceived(int noOfComputationMsg) {
 		NoOfAckToBeReceived = noOfComputationMsg;
 	}
-	public static int getNoOfAckToBeSent() {
+	public synchronized int getNoOfAckToBeSent() {
 		return NoOfAckToBeSent;
 	}
-	public static void setNoOfAckToBeSent(int noOfAckMsg) {
+	public synchronized void setNoOfAckToBeSent(int noOfAckMsg) {
 		NoOfAckToBeSent = noOfAckMsg;
 	}
-	
-	
+
+	public static boolean isTerminate() {
+		return terminate;
+	}
+
+	public static void setTerminate(boolean terminate) {
+		Message.terminate = terminate;
+	}
 }

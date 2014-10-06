@@ -9,38 +9,40 @@ import java.net.Socket;
 import java.util.Properties;
 
 public class TerminateWithRoot implements Runnable {
-	BufferedWriter writer = new Usefulmethods().getWriter("process1.txt");
-	String rootProcess;
+	Usefulmethods usefulMethods = Usefulmethods.getUsefulmethodsInstance();
+	BufferedWriter writer;
+	String rootProcess = Message.getInstance().getRoot();
 	int rootProcessNumber;
 		
-	public TerminateWithRoot(String process) {
-		rootProcess = process;
+	public TerminateWithRoot() {
+		writer = usefulMethods.getWriter("process"+Message.processNumber+".txt");
 	}
 
 	public void run() {	
+		go();
 	}
 	
 	public void go() {
-		Properties ServerPort = new Usefulmethods().getPropertiesFile("serverport.properties");
+		Properties ServerPort = usefulMethods.getPropertiesFile("serverport.properties");
 		PrintWriter out = null;
 		BufferedReader in = null;
 		
 		int len = rootProcess.length();
 		if(len == 8) {
 			String root = rootProcess.substring(7, 8);
-			rootProcessNumber = Integer.parseInt(root);
+			rootProcessNumber = Integer.parseInt(root.trim());
 		} else if (len == 9) {
 			String root = rootProcess.substring(7, 9);
-			rootProcessNumber = Integer.parseInt(root);
+			rootProcessNumber = Integer.parseInt(root.trim());
 		}
 		
-		for(int i=1 ; i < 4; i++) {
+		for(int i=1 ; i < 6; i++) {
 			if(i == rootProcessNumber) {
 				// do nothing
 			} else {
 				String serverName = ServerPort.getProperty("process"+i);
 				String portString = ServerPort.getProperty("process"+i+"Port");//Integer.parseInt(args[1]);
-				int port = Integer.parseInt(portString);
+				int port = Integer.parseInt(portString.trim());
 				
 				try {	
 					System.out.println("Connecting to " + serverName + " on port "+ port);

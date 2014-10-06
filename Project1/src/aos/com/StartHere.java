@@ -2,8 +2,17 @@ package aos.com;
 
 public class StartHere {
 	public static void main(String[] args) {
-		System.out.println("Am the starting point");
-		System.out.println("Adding a line for testing");
-		System.out.println("Adding a line for testing 2");
+		Message message = Message.getInstance();
+		Thread t = new Thread(new Server(message));
+		t.start();
+		
+		try{
+			Thread.sleep(40*1000);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		Thread th = new Thread(new Client(message));
+		th.start();
 	}
 }

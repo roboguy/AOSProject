@@ -9,19 +9,21 @@ import java.net.Socket;
 import java.util.Properties;
 
 public class AckHandler implements Runnable{
-	BufferedWriter writer = new Usefulmethods().getWriter("process1.txt");
+	Usefulmethods usefulMethods = Usefulmethods.getUsefulmethodsInstance();
+	BufferedWriter writer;
 	Socket ackAclient;
 	String serverName;
 	int port;
-	String ackProcess = "process"+(new Client().thisProcessNumber);
+	String ackProcess;
 	
 	public AckHandler(String processName) {
-		//sock = parts;
+		ackProcess = processName;
 		try {
-			Properties ServerPort = new Usefulmethods().getPropertiesFile("serverport.properties");
+			writer = usefulMethods.getWriter("process"+Message.processNumber+".txt");
+			Properties ServerPort = usefulMethods.getPropertiesFile("serverport.properties");
 			serverName = ServerPort.getProperty(processName);
 			String portString = ServerPort.getProperty(processName+"Port");//Integer.parseInt(args[1]);
-			port = Integer.parseInt(portString);
+			port = Integer.parseInt(portString.trim());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
