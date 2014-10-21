@@ -42,7 +42,7 @@ public class AckHandler implements Runnable{
 			out = new PrintWriter(ackAclient.getOutputStream(), true);
 			in =new BufferedReader(new InputStreamReader(ackAclient.getInputStream()));
 
-			out.println("Acknowledgement:"+ackProcess);
+			out.println("Acknowledgement : "+ Message.processNumber);
 			
 			closeEverything(out, in);
 			
